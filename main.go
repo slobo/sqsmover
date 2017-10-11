@@ -33,10 +33,12 @@ func main() {
 
 	flag.Parse()
 
+	fmt.Printf("Moving From %s to %s\n", *sourceQueueName, *destQueueName);
+
 	// Create an EC2 service object in the "us-west-2" region
 	// Note that you can also configure your region globally by
 	// exporting the AWS_REGION environment variable
-	svc := sqs.New(session.New(), aws.NewConfig().WithRegion("us-west-2"))
+	svc := sqs.New(session.New(), aws.NewConfig().WithRegion("us-east-1"))
 
 	err, sourceUrl := resolveQueueUrl(*sourceQueueName, svc)
 
@@ -54,7 +56,7 @@ func main() {
 		QueueUrl:            aws.String(sourceUrl), // Required
 		VisibilityTimeout:   aws.Int64(1),
 		WaitTimeSeconds:     aws.Int64(1),
-		MaxNumberOfMessages: aws.Int64(10),
+		MaxNumberOfMessages: aws.Int64(4),
 	}
 
 	for {
@@ -75,7 +77,7 @@ func main() {
 		}
 
 		fmt.Println("Messages to transfer:")
-		fmt.Println(resp.Messages)
+		// fmt.Println(resp.Messages)
 
 		batch := &sqs.SendMessageBatchInput{
 			QueueUrl: aws.String(destUrl),
@@ -97,7 +99,7 @@ func main() {
 		}
 
 		fmt.Println("Unqueued to destination the following: ")
-		fmt.Println(sendResp.Successful)
+		//fmt.Println(sendResp.Successful)
 
 		if len(sendResp.Successful) == len(resp.Messages) {
 			deleteMessageBatch := &sqs.DeleteMessageBatchInput{
